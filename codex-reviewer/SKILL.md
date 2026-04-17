@@ -1,31 +1,48 @@
 ---
 name: codex-reviewer
-description: OpenAI Codex MCPを使ってコードや計画に対する外部視点のレビューを取得する。計画の妥当性確認、複雑な問題で行き詰まったとき、アーキテクチャ判断のセカンドオピニオン、難しいデバッグのときに使用する。「Codexに聞いて」「セカンドオピニオンが欲しい」などのリクエストにも対応する。
+description: OpenAI Codex CLIを使ってコードや計画に対する外部視点のレビューを取得する。計画の妥当性確認、複雑な問題で行き詰まったとき、アーキテクチャ判断のセカンドオピニオン、難しいデバッグのときに使用する。「Codexに聞いて」「セカンドオピニオンが欲しい」などのリクエストにも対応する。
 ---
 
 # Codex Reviewer
 
-OpenAI Codex MCPを使い、外部視点からのレビューを会話形式で取得する。
+`codex exec` CLIを使い、外部視点からのレビューを取得する。
 
 ## 使い方
 
-### 初回のレビュー依頼
+### レビュー依頼
 
-```
-mcp__codex__codex ツールを使用:
-- prompt: レビュー内容
-- cwd: 対象プロジェクトのディレクトリ（必要に応じて）
+Bashツールで `codex exec` を実行する:
+
+```bash
+codex exec --full-auto -C <対象ディレクトリ> -o /tmp/codex-review.txt "<レビュー依頼プロンプト>"
 ```
 
-### 会話の継続
+- `--full-auto`: サンドボックス内で自動実行
+- `-C`: 対象プロジェクトのディレクトリ
+- `-o`: 結果をファイルに出力（Readツールで読み取る）
+- `--ephemeral`: セッションを永続化しない場合に付与
 
-追加の質問や掘り下げが必要な場合:
+### コードレビュー専用
 
+リポジトリの変更に対するレビューには `codex exec review` を使う:
+
+```bash
+# 未コミットの変更をレビュー
+codex exec review --full-auto --uncommitted -o /tmp/codex-review.txt
+
+# 特定ブランチとの差分をレビュー
+codex exec review --full-auto --base main -o /tmp/codex-review.txt
+
+# 特定コミットをレビュー
+codex exec review --full-auto --commit <SHA> -o /tmp/codex-review.txt
+
+# カスタム指示付き
+codex exec review --full-auto --uncommitted -o /tmp/codex-review.txt "セキュリティの観点で確認してください"
 ```
-mcp__codex__codex-reply ツールを使用:
-- conversationId: 前回のレスポンスから取得
-- prompt: 追加の質問
-```
+
+### 結果の取得
+
+`-o` で指定したファイルをReadツールで読み取り、ユーザーに要約して伝える。
 
 ## レビュー依頼の書き方
 
@@ -50,6 +67,7 @@ mcp__codex__codex-reply ツールを使用:
 - **行き詰まり**: 問題解決の糸口が見つからないとき
 - **アーキテクチャ判断**: 複数の選択肢で迷っているとき
 - **デバッグ困難**: 根本原因の特定が難しいとき
+- **コードレビュー**: 変更内容のレビューが必要なとき
 
 ## 注意事項
 
